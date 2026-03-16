@@ -1,18 +1,38 @@
 import { createFileRoute } from '@tanstack/react-router';
+import { format } from 'date-fns';
 
 import type { Enquiry } from '#/types';
 import type { ColumnDef } from '#/components/table';
 import useEnquiries from '#/hooks/use-enquiry';
 import { Spinner } from '#/components/spinner';
 import Table from '#/components/table';
+import useEnquiriesStore from '#/stores/enquires-store';
 
 export const Route = createFileRoute('/')({ component: App });
 
 const columns: ColumnDef<Enquiry>[] = [
 	{ key: 'id', label: 'ID' },
 	{ key: 'customerName', label: 'Customer', sortable: true },
-	{ key: 'company', label: 'Company', sortable: true },
 	{ key: 'partRequested', label: 'Part', sortable: false },
+	{
+		key: 'dateSubmitted',
+		label: 'Date',
+		sortable: true,
+		render: (v) => (
+			<span className='island-kicker text-[var(--lagoon-deep)]'>
+				{format(new Date(`${v}`), 'dd - MMM - yyyy')}
+			</span>
+		)
+	},
+	{
+		key: 'status',
+		label: 'Status',
+		sortable: true,
+		render: (v) => (
+			<span className='island-kicker text-[var(--lagoon-deep)]'>{String(v)}</span>
+		)
+	},
+	{ key: 'company', label: 'Company', sortable: true },
 	{
 		key: 'dealValue',
 		label: 'Deal (£)',
@@ -28,27 +48,21 @@ const columns: ColumnDef<Enquiry>[] = [
 				{String(v)}
 			</span>
 		)
-	},
-	{
-		key: 'status',
-		label: 'Status',
-		sortable: true,
-		render: (v) => (
-			<span className='island-kicker text-[var(--lagoon-deep)]'>{String(v)}</span>
-		)
 	}
 ];
 
 function App() {
-	const { data = [], isLoading } = useEnquiries();
+	const enquires = useEnquiriesStore((s) => s.enquiries);
+
+	const { isLoading } = useEnquiries({ syncStore: true });
 
 	return (
 		<main className='p-4'>
 			{isLoading ? (
-				<Spinner />
+				<Spinner className='mx-auto mt-12' />
 			) : (
 				<Table
-					data={data}
+					data={enquires}
 					columns={columns}
 					filterPlaceholder='Search enquiries...'
 					filterKeys={['customerName', 'partRequested']}
