@@ -12,7 +12,7 @@ export const getEnquiriesAPI = async ({
 	data: Enquiry[];
 	total: number;
 }> => {
-	setTimeout(() => {}, Math.random() * 1500);
+	await new Promise((resolve) => setTimeout(resolve, Math.random() * 1000));
 	const { data: all } = await axios.get<Enquiry[]>('/enquiries.json');
 	const total = all.length;
 	const start = (page - 1) * pageSize;
