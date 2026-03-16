@@ -173,7 +173,10 @@ function Dashboard() {
 				<Spinner className='mx-auto mt-12' />
 			) : (
 				<>
-					<SummaryStats filtered={filteredEnquiries} total={pagination.total} />
+					<SummaryStats
+						filtered={statusFilteredEnquiries}
+						total={pagination.total}
+					/>
 					<div className='flex flex-col gap-3 md:flex-row'>
 						<p className='font-semibold'>Filter Status</p>
 						<StatusFilterBar value={statusFilter} onChange={setStatusFilter} />
