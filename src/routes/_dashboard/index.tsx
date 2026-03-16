@@ -145,7 +145,7 @@ function Dashboard() {
 	const statusFilter = useDashboardStore((s) => s.statusFilter);
 	const setStatusFilter = useDashboardStore((s) => s.setStatusFilter);
 
-	const { isLoading } = useEnquiries({
+	const { isLoading, isError } = useEnquiries({
 		syncStore: true,
 		pageSize: pagination.pageSize,
 		page: pagination.page
@@ -159,22 +159,25 @@ function Dashboard() {
 		onPageSizeChange: (pageSize) => setPagination({ page: 1, pageSize })
 	};
 
-	const statusFilteredEnquiries = useMemo(
-		() =>
-			statusFilter === 'all'
-				? enquiries
-				: enquiries.filter((e) => e.status === statusFilter),
-		[enquiries, statusFilter]
-	);
+	const statusFilteredEnquiries = useMemo(() => {
+		if (!Array.isArray(enquiries)) return [];
+		return statusFilter === 'all'
+			? enquiries
+			: enquiries.filter((e) => e.status === statusFilter);
+	}, [enquiries, statusFilter]);
 
 	return (
 		<main className='p-4'>
 			{isLoading ? (
 				<Spinner className='mx-auto mt-12' />
+			) : isError ? (
+				<span className='mt-12 flex items-center justify-center text-sm font-semibold text-[var(--sea-ink-soft)]'>
+					Failed to load enquiries. Please try again.
+				</span>
 			) : (
 				<>
 					<SummaryStats
-						filtered={statusFilteredEnquiries}
+						filtered={statusFilteredEnquiries ?? []}
 						total={pagination.total}
 					/>
 					<div className='flex flex-col gap-3 md:flex-row'>
