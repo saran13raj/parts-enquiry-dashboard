@@ -11,3 +11,9 @@ export interface Enquiry {
 	dealValue: number;
 	score: number;
 }
+
+export interface Pagination {
+	page: number;
+	pageSize: 10 | 15 | 20;
+	total: number;
+}

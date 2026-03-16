@@ -1,27 +1,38 @@
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import type { Enquiry } from '#/types';
 import { getEnquiriesAPI } from '#/api/enquires';
 import { useDashboardStore } from '#/stores/dashboard-store';
 
 interface UseEnquiriesOptions {
 	syncStore?: boolean;
+	pageSize?: number;
+	page: number;
 }
 
 export const useEnquiries = (options?: UseEnquiriesOptions) => {
+	const { pageSize = 10, page = 1, syncStore } = options || {};
+
 	// TODO: pass store as options?
 	const setEnquiries = useDashboardStore((s) => s.setEnquiries);
+	const setPagination = useDashboardStore((s) => s.setPagination);
 
-	return useQuery<Enquiry[], Error>({
-		queryKey: ['enquiries'],
-		queryFn: async () => {
-			const data = await getEnquiriesAPI();
-			if (data?.length) {
-				options?.syncStore && setEnquiries(data);
-				return data;
-			}
-			return [];
-		},
-		staleTime: 1000 * 60 * 5 // 5 minutes
+	const query = useQuery({
+		queryKey: ['enquiries', page, pageSize],
+		queryFn: () => getEnquiriesAPI({ page, pageSize }),
+		staleTime: 1000 * 60 * 5, // 5 minutes,
+		placeholderData: (prev) => prev // keeps previous page data visible while fetching
 	});
+
+	const { data: result } = query;
+
+	// TODO: can this be done without useEffect?
+	useEffect(() => {
+		if (result && syncStore) {
+			setEnquiries(result.data);
+			setPagination({ total: result.total });
+		}
+	}, [result, syncStore, setEnquiries, setPagination]);
+
+	return query;
 };

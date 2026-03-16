@@ -1,5 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
-import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import {
+	ChevronUp,
+	ChevronDown,
+	ChevronsUpDown,
+	ChevronLeft,
+	ChevronRight
+} from 'lucide-react';
 
 export type ColumnDef<T> = {
 	key: keyof T;
@@ -10,33 +16,44 @@ export type ColumnDef<T> = {
 
 type SortDir = 'asc' | 'desc' | null;
 
+export interface PaginationProps {
+	page: number;
+	pageSize: 10 | 15 | 20;
+	total: number;
+	onPageChange: (page: number) => void;
+	onPageSizeChange: (size: 10 | 15 | 20) => void;
+}
+
 interface TableProps<T extends object> {
 	data: T[];
 	columns: ColumnDef<T>[];
 	filterPlaceholder?: string;
 	filterKeys?: (keyof T)[];
 	onFilteredDataChange?: (filtered: T[]) => void;
+	pagination?: PaginationProps;
 }
+
+const PAGE_SIZE_OPTIONS: Array<10 | 15 | 20> = [10, 15, 20];
 
 function Table<T extends object>({
 	data,
 	columns,
 	filterPlaceholder = 'Filter...',
 	filterKeys,
-	onFilteredDataChange
+	onFilteredDataChange,
+	pagination
 }: TableProps<T>) {
 	const [sortKey, setSortKey] = useState<keyof T | null>(null);
 	const [sortDir, setSortDir] = useState<SortDir>(null);
 	const [filter, setFilter] = useState('');
 
-	// TODO: sort logic can be dynamic. add ability to pass in sort func as param
 	const handleSort = (key: keyof T) => {
 		if (sortKey !== key) {
 			setSortKey(key);
 			setSortDir('asc');
 		} else if (sortDir === 'asc') {
 			setSortDir('desc');
-		} else if (sortDir === 'desc') {
+		} else {
 			setSortKey(null);
 			setSortDir(null);
 		}
@@ -73,6 +90,10 @@ function Table<T extends object>({
 		return rows;
 	}, [data, filter, sortKey, sortDir]);
 
+	useEffect(() => {
+		onFilteredDataChange?.(processed);
+	}, [processed]);
+
 	const SortIcon = ({ col }: { col: ColumnDef<T> }) => {
 		if (!col.sortable) return null;
 		if (sortKey !== col.key)
@@ -82,10 +103,17 @@ function Table<T extends object>({
 		return <ChevronDown size={13} className='text-[var(--lagoon-deep)]' />;
 	};
 
-	// call when processed changes
-	useEffect(() => {
-		onFilteredDataChange?.(processed);
-	}, [processed]);
+	// Pagination derived values
+	const totalPages = pagination
+		? Math.max(1, Math.ceil(pagination.total / pagination.pageSize))
+		: null;
+
+	const rangeStart = pagination
+		? (pagination.page - 1) * pagination.pageSize + 1
+		: null;
+	const rangeEnd = pagination
+		? Math.min(pagination.page * pagination.pageSize, pagination.total)
+		: null;
 
 	return (
 		<div className='island-shell overflow-hidden rounded-2xl'>
@@ -109,7 +137,11 @@ function Table<T extends object>({
 								<th
 									key={String(col.key)}
 									onClick={() => col.sortable && handleSort(col.key)}
-									className={`island-kicker px-4 py-3 font-semibold tracking-wide whitespace-nowrap text-[var(--sea-ink-soft)] ${col.sortable ? 'cursor-pointer transition-colors select-none hover:text-[var(--sea-ink)]' : ''}`}
+									className={`island-kicker px-4 py-3 font-semibold tracking-wide whitespace-nowrap text-[var(--sea-ink-soft)] ${
+										col.sortable
+											? 'cursor-pointer transition-colors select-none hover:text-[var(--sea-ink)]'
+											: ''
+									}`}
 								>
 									<span className='inline-flex items-center gap-1.5'>
 										{col.label}
@@ -152,9 +184,61 @@ function Table<T extends object>({
 				</table>
 			</div>
 
-			{/* Footer count */}
-			<div className='border-t border-[var(--line)] px-4 py-2 text-xs text-[var(--sea-ink-soft)]'>
-				{processed.length} of {data.length} rows
+			{/* Footer — row count + pagination */}
+			<div className='flex flex-wrap items-center justify-between gap-3 border-t border-[var(--line)] px-4 py-2'>
+				{/* Left: row range */}
+				<p className='m-0 text-xs text-[var(--sea-ink-soft)]'>
+					{pagination
+						? `${rangeStart}–${rangeEnd} of ${pagination.total} rows`
+						: `${processed.length} of ${data.length} rows`}
+				</p>
+
+				{/* Right: pagination controls */}
+				{pagination && totalPages !== null && (
+					<div className='flex items-center gap-2'>
+						{/* Page size picker */}
+						<select
+							value={pagination.pageSize}
+							onChange={(e) =>
+								pagination.onPageSizeChange(Number(e.target.value) as 10 | 15 | 20)
+							}
+							className='rounded-lg border border-[var(--chip-line)] bg-[var(--chip-bg)] px-2 py-1 text-xs text-[var(--sea-ink)] focus:border-[var(--lagoon-deep)] focus:outline-none'
+						>
+							{PAGE_SIZE_OPTIONS.map((s) => (
+								<option key={s} value={s}>
+									{s} / page
+								</option>
+							))}
+						</select>
+
+						{/* Prev */}
+						<button
+							type='button'
+							disabled={pagination.page <= 1}
+							onClick={() => pagination.onPageChange(pagination.page - 1)}
+							className='flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-[var(--chip-line)] bg-[var(--chip-bg)] text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)] disabled:cursor-not-allowed disabled:opacity-35'
+							aria-label='Previous page'
+						>
+							<ChevronLeft size={14} />
+						</button>
+
+						{/* Page indicator */}
+						<span className='island-kicker min-w-[4rem] text-center'>
+							{pagination.page} / {totalPages}
+						</span>
+
+						{/* Next */}
+						<button
+							type='button'
+							disabled={pagination.page >= totalPages}
+							onClick={() => pagination.onPageChange(pagination.page + 1)}
+							className='flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg border border-[var(--chip-line)] bg-[var(--chip-bg)] text-[var(--sea-ink-soft)] transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)] disabled:cursor-not-allowed disabled:opacity-35'
+							aria-label='Next page'
+						>
+							<ChevronRight size={14} />
+						</button>
+					</div>
+				)}
 			</div>
 		</div>
 	);

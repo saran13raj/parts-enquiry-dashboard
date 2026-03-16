@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router';
 import { format } from 'date-fns';
 
 import type { Enquiry } from '#/types';
-import type { ColumnDef } from '#/components/table';
+import type { ColumnDef, PaginationProps } from '#/components/table';
 import { useEnquiries } from '#/hooks/use-enquiry';
 import { Spinner } from '#/components/spinner';
 import Table from '#/components/table';
@@ -15,7 +15,7 @@ export const Route = createFileRoute('/')({ component: App });
 const columns: ColumnDef<Enquiry>[] = [
 	{ key: 'id', label: 'ID' },
 	{ key: 'customerName', label: 'Customer', sortable: true },
-	{ key: 'partRequested', label: 'Part', sortable: false },
+	{ key: 'partRequested', label: 'Part', sortable: true },
 	{
 		key: 'dateSubmitted',
 		label: 'Date',
@@ -53,7 +53,7 @@ const columns: ColumnDef<Enquiry>[] = [
 	}
 ];
 
-const SummaryBar = ({
+const SummaryStats = ({
 	filtered,
 	total
 }: {
@@ -85,7 +85,7 @@ const SummaryBar = ({
 	];
 
 	return (
-		<div className='mb-4 grid grid-cols-3 gap-3'>
+		<div className='mb-4 grid grid-cols-1 gap-3 md:grid-cols-3'>
 			{stats.map((stat) => (
 				<StatsCard key={stat.label} {...stat} />
 			))}
@@ -97,8 +97,22 @@ function App() {
 	const enquiries = useDashboardStore((s) => s.enquiries);
 	const filteredEnquiries = useDashboardStore((s) => s.filteredEnquiries);
 	const setFilteredEnquiries = useDashboardStore((s) => s.setFilteredEnquiries);
+	const pagination = useDashboardStore((s) => s.pagination);
+	const setPagination = useDashboardStore((s) => s.setPagination);
 
-	const { isLoading } = useEnquiries({ syncStore: true });
+	const { isLoading } = useEnquiries({
+		syncStore: true,
+		pageSize: pagination.pageSize,
+		page: pagination.page
+	});
+
+	const paginationProps: PaginationProps = {
+		page: pagination.page,
+		pageSize: pagination.pageSize,
+		total: pagination.total,
+		onPageChange: (page) => setPagination({ page }),
+		onPageSizeChange: (pageSize) => setPagination({ page: 1, pageSize })
+	};
 
 	return (
 		<main className='p-4'>
@@ -106,13 +120,14 @@ function App() {
 				<Spinner className='mx-auto mt-12' />
 			) : (
 				<>
-					<SummaryBar filtered={filteredEnquiries} total={enquiries.length} />
+					<SummaryStats filtered={filteredEnquiries} total={enquiries.length} />
 					<Table
 						data={enquiries}
 						columns={columns}
 						filterPlaceholder='Search enquiries...'
 						filterKeys={['customerName', 'partRequested']}
 						onFilteredDataChange={setFilteredEnquiries}
+						pagination={paginationProps}
 					/>
 				</>
 			)}
