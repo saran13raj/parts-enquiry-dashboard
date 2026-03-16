@@ -31,6 +31,7 @@ interface TableProps<T extends object> {
 	filterKeys?: (keyof T)[];
 	onFilteredDataChange?: (filtered: T[]) => void;
 	pagination?: PaginationProps;
+	onRowClick?: (row: T) => void;
 }
 
 const PAGE_SIZE_OPTIONS: Array<10 | 15 | 20> = [10, 15, 20];
@@ -41,7 +42,8 @@ function Table<T extends object>({
 	filterPlaceholder = 'Filter...',
 	filterKeys,
 	onFilteredDataChange,
-	pagination
+	pagination,
+	onRowClick
 }: TableProps<T>) {
 	const [sortKey, setSortKey] = useState<keyof T | null>(null);
 	const [sortDir, setSortDir] = useState<SortDir>(null);
@@ -165,7 +167,8 @@ function Table<T extends object>({
 							processed.map((row, i) => (
 								<tr
 									key={i}
-									className='border-b border-[var(--line)] transition-colors duration-150 last:border-0 hover:bg-[var(--link-bg-hover)]'
+									onClick={() => onRowClick?.(row)}
+									className={`border-b border-[var(--line)] transition-colors duration-150 last:border-0 hover:bg-[var(--link-bg-hover)] ${onRowClick ? 'cursor-pointer' : ''}`}
 								>
 									{columns.map((col) => (
 										<td

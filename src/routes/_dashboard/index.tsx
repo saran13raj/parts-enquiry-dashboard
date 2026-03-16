@@ -9,8 +9,10 @@ import Table from '#/components/table';
 import { useDashboardStore } from '#/stores/dashboard-store';
 import { ClipboardList, Star, TrendingUp } from 'lucide-react';
 import { StatsCard } from '#/components/stats-card';
+import { Modal } from '#/components/modal';
+import { EnquiryDetails } from './enquiry-details';
 
-export const Route = createFileRoute('/')({ component: App });
+export const Route = createFileRoute('/_dashboard/')({ component: Dashboard });
 
 const columns: ColumnDef<Enquiry>[] = [
 	{ key: 'id', label: 'ID' },
@@ -64,7 +66,7 @@ const SummaryStats = ({
 	const pipeline = filtered.reduce((sum, e) => sum + e.dealValue, 0);
 	const avgScore = count
 		? Math.round(filtered.reduce((sum, e) => sum + e.score, 0) / count)
-		: 0;
+		: 0
 
 	const stats = [
 		{
@@ -82,7 +84,7 @@ const SummaryStats = ({
 			label: 'Avg Score',
 			value: avgScore
 		}
-	];
+	]
 
 	return (
 		<div className='mb-4 grid grid-cols-1 gap-3 md:grid-cols-3'>
@@ -90,21 +92,24 @@ const SummaryStats = ({
 				<StatsCard key={stat.label} {...stat} />
 			))}
 		</div>
-	);
+	)
 };
 
-function App() {
+function Dashboard() {
 	const enquiries = useDashboardStore((s) => s.enquiries);
 	const filteredEnquiries = useDashboardStore((s) => s.filteredEnquiries);
 	const setFilteredEnquiries = useDashboardStore((s) => s.setFilteredEnquiries);
 	const pagination = useDashboardStore((s) => s.pagination);
 	const setPagination = useDashboardStore((s) => s.setPagination);
+	const selectedEnquiry = useDashboardStore((s) => s.selectedEnquiry);
+	const setSelectedEnquiry = useDashboardStore((s) => s.setSelectedEnquiry);
+	const updateEnquiryStatus = useDashboardStore((s) => s.updateEnquiryStatus);
 
 	const { isLoading } = useEnquiries({
 		syncStore: true,
 		pageSize: pagination.pageSize,
 		page: pagination.page
-	});
+	})
 
 	const paginationProps: PaginationProps = {
 		page: pagination.page,
@@ -112,7 +117,7 @@ function App() {
 		total: pagination.total,
 		onPageChange: (page) => setPagination({ page }),
 		onPageSizeChange: (pageSize) => setPagination({ page: 1, pageSize })
-	};
+	}
 
 	return (
 		<main className='p-4'>
@@ -128,9 +133,19 @@ function App() {
 						filterKeys={['customerName', 'partRequested']}
 						onFilteredDataChange={setFilteredEnquiries}
 						pagination={paginationProps}
+						onRowClick={(row) => setSelectedEnquiry(row)}
 					/>
 				</>
 			)}
+
+			{selectedEnquiry && (
+				<Modal title='Enquiry Details' onClose={() => setSelectedEnquiry(null)}>
+					<EnquiryDetails
+						enquiry={selectedEnquiry}
+						onUpdateStatus={updateEnquiryStatus}
+					/>
+				</Modal>
+			)}
 		</main>
-	);
+	)
 }
