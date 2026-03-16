@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { Enquiry, Pagination } from '#/types';
+import type { Enquiry, Pagination, StatusFilter } from '#/types';
 
 interface DashboardStore {
 	enquiries: Enquiry[];
@@ -12,6 +12,8 @@ interface DashboardStore {
 	selectedEnquiry: Enquiry | null;
 	setSelectedEnquiry: (enquiry: Enquiry | null) => void;
 	updateEnquiryStatus: (id: string, status: Enquiry['status']) => void;
+	statusFilter: StatusFilter;
+	setStatusFilter: (filter: StatusFilter) => void;
 }
 
 export const useDashboardStore = create<DashboardStore>((set) => ({
@@ -47,5 +49,7 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
 				filteredEnquiries: updatedFiltered,
 				selectedEnquiry: updatedSelected
 			};
-		})
+		}),
+	statusFilter: 'all',
+	setStatusFilter: (statusFilter) => set({ statusFilter })
 }));

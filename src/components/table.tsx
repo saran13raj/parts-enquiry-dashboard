@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import {
 	ChevronUp,
 	ChevronDown,
@@ -49,6 +49,8 @@ function Table<T extends object>({
 	const [sortDir, setSortDir] = useState<SortDir>(null);
 	const [filter, setFilter] = useState('');
 
+	const onFilteredDataChangeRef = useRef(onFilteredDataChange);
+
 	const handleSort = (key: keyof T) => {
 		if (sortKey !== key) {
 			setSortKey(key);
@@ -67,6 +69,7 @@ function Table<T extends object>({
 		let rows = [...data];
 
 		if (filter.trim()) {
+			// NOTE: filter logic should happen via api call
 			const q = filter.toLowerCase();
 			rows = rows.filter((row) =>
 				searchableKeys.some((k) =>
@@ -93,7 +96,11 @@ function Table<T extends object>({
 	}, [data, filter, sortKey, sortDir]);
 
 	useEffect(() => {
-		onFilteredDataChange?.(processed);
+		onFilteredDataChangeRef.current = onFilteredDataChange;
+	});
+
+	useEffect(() => {
+		onFilteredDataChangeRef.current?.(processed);
 	}, [processed]);
 
 	const SortIcon = ({ col }: { col: ColumnDef<T> }) => {

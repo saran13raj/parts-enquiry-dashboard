@@ -17,3 +17,5 @@ export interface Pagination {
 	pageSize: 10 | 15 | 20;
 	total: number;
 }
+
+export type StatusFilter = 'all' | EnquiryStatus;

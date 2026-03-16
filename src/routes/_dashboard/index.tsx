@@ -1,7 +1,8 @@
+import { useMemo } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { format } from 'date-fns';
 
-import type { Enquiry } from '#/types';
+import type { Enquiry, StatusFilter } from '#/types';
 import type { ColumnDef, PaginationProps } from '#/components/table';
 import { useEnquiries } from '#/hooks/use-enquiry';
 import { Spinner } from '#/components/spinner';
@@ -11,6 +12,7 @@ import { ClipboardList, Star, TrendingUp } from 'lucide-react';
 import { StatsCard } from '#/components/stats-card';
 import { Modal } from '#/components/modal';
 import { EnquiryDetails } from './enquiry-details';
+import { cn } from '#/utils';
 
 export const Route = createFileRoute('/_dashboard/')({ component: Dashboard });
 
@@ -55,6 +57,42 @@ const columns: ColumnDef<Enquiry>[] = [
 	}
 ];
 
+const STATUS_OPTIONS: { label: string; value: StatusFilter }[] = [
+	{ label: 'All', value: 'all' },
+	{ label: 'New', value: 'new' },
+	{ label: 'Quoted', value: 'quoted' },
+	{ label: 'Won', value: 'won' },
+	{ label: 'Lost', value: 'lost' }
+];
+
+const StatusFilterBar = ({
+	value,
+	onChange
+}: {
+	value: StatusFilter;
+	onChange: (v: StatusFilter) => void;
+}) => (
+	<div className='mb-3 flex flex-wrap gap-2'>
+		{STATUS_OPTIONS.map((opt) => (
+			// move this to a button variant component
+			<button
+				key={opt.value}
+				type='button'
+				onClick={() => onChange(opt.value)}
+				className={cn(
+					'cursor-pointer rounded-full border px-3 py-1 text-xs font-semibold transition-colors',
+					value === opt.value
+						? 'border-[var(--lagoon-deep)] bg-[var(--lagoon-deep)]/30 text-white'
+						: 'border-[var(--chip-line)] bg-[var(--chip-bg)] text-[var(--sea-ink-soft)] hover:border-[var(--lagoon-deep)] hover:text-[var(--sea-ink)]'
+				)}
+			>
+				{opt.label}
+			</button>
+		))}
+	</div>
+);
+
+// TODO: Make this a component if used in other places too
 const SummaryStats = ({
 	filtered,
 	total
@@ -104,6 +142,8 @@ function Dashboard() {
 	const selectedEnquiry = useDashboardStore((s) => s.selectedEnquiry);
 	const setSelectedEnquiry = useDashboardStore((s) => s.setSelectedEnquiry);
 	const updateEnquiryStatus = useDashboardStore((s) => s.updateEnquiryStatus);
+	const statusFilter = useDashboardStore((s) => s.statusFilter);
+	const setStatusFilter = useDashboardStore((s) => s.setStatusFilter);
 
 	const { isLoading } = useEnquiries({
 		syncStore: true,
@@ -119,6 +159,14 @@ function Dashboard() {
 		onPageSizeChange: (pageSize) => setPagination({ page: 1, pageSize })
 	};
 
+	const statusFilteredEnquiries = useMemo(
+		() =>
+			statusFilter === 'all'
+				? enquiries
+				: enquiries.filter((e) => e.status === statusFilter),
+		[enquiries, statusFilter]
+	);
+
 	return (
 		<main className='p-4'>
 			{isLoading ? (
@@ -126,11 +174,16 @@ function Dashboard() {
 			) : (
 				<>
 					<SummaryStats filtered={filteredEnquiries} total={pagination.total} />
+					<div className='flex flex-col gap-3 md:flex-row'>
+						<p className='font-semibold'>Filter Status</p>
+						<StatusFilterBar value={statusFilter} onChange={setStatusFilter} />
+					</div>
 					<Table
-						data={enquiries}
+						data={statusFilteredEnquiries}
 						columns={columns}
 						filterPlaceholder='Search enquiries...'
 						filterKeys={['customerName', 'partRequested']}
+						// NOTE: filter logic should happen via api call
 						onFilteredDataChange={setFilteredEnquiries}
 						pagination={paginationProps}
 						onRowClick={(row) => setSelectedEnquiry(row)}
