@@ -2,14 +2,15 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { Enquiry } from '#/types';
 import { getEnquiriesAPI } from '#/api/enquires';
-import useEnquiriesStore from '#/stores/enquires-store';
+import useDashboardStore from '#/stores/dashboard-store';
 
 interface UseEnquiriesOptions {
 	syncStore?: boolean;
 }
 
 const useEnquiries = (options?: UseEnquiriesOptions) => {
-	const setEnquiries = useEnquiriesStore((s) => s.setEnquiries);
+	// TODO: pass store as options?
+	const setEnquiries = useDashboardStore((s) => s.setEnquiries);
 
 	return useQuery<Enquiry[], Error>({
 		queryKey: ['enquiries'],

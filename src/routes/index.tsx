@@ -6,7 +6,7 @@ import type { ColumnDef } from '#/components/table';
 import useEnquiries from '#/hooks/use-enquiry';
 import { Spinner } from '#/components/spinner';
 import Table from '#/components/table';
-import useEnquiriesStore from '#/stores/enquires-store';
+import useDashboardStore from '#/stores/dashboard-store';
 
 export const Route = createFileRoute('/')({ component: App });
 
@@ -52,7 +52,7 @@ const columns: ColumnDef<Enquiry>[] = [
 ];
 
 function App() {
-	const enquires = useEnquiriesStore((s) => s.enquiries);
+	const enquires = useDashboardStore((s) => s.enquiries);
 
 	const { isLoading } = useEnquiries({ syncStore: true });
 
