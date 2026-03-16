@@ -33,7 +33,7 @@ const ICONS: Record<ThemeMode, React.ReactNode> = {
 	auto: <SunMoon size={15} strokeWidth={2.2} />
 };
 
-export default function ThemeToggle() {
+export const ThemeToggle = () => {
 	const [mode, setMode] = useState<ThemeMode>('auto');
 
 	useEffect(() => {
@@ -74,4 +74,4 @@ export default function ThemeToggle() {
 			{ICONS[mode]}
 		</button>
 	);
-}
+};

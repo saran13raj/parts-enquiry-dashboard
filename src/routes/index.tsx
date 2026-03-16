@@ -3,10 +3,12 @@ import { format } from 'date-fns';
 
 import type { Enquiry } from '#/types';
 import type { ColumnDef } from '#/components/table';
-import useEnquiries from '#/hooks/use-enquiry';
+import { useEnquiries } from '#/hooks/use-enquiry';
 import { Spinner } from '#/components/spinner';
 import Table from '#/components/table';
-import useDashboardStore from '#/stores/dashboard-store';
+import { useDashboardStore } from '#/stores/dashboard-store';
+import { ClipboardList, Star, TrendingUp } from 'lucide-react';
+import { StatsCard } from '#/components/stats-card';
 
 export const Route = createFileRoute('/')({ component: App });
 
@@ -51,8 +53,50 @@ const columns: ColumnDef<Enquiry>[] = [
 	}
 ];
 
+const SummaryBar = ({
+	filtered,
+	total
+}: {
+	filtered: Enquiry[];
+	total: number;
+}) => {
+	const count = filtered.length;
+	const pipeline = filtered.reduce((sum, e) => sum + e.dealValue, 0);
+	const avgScore = count
+		? Math.round(filtered.reduce((sum, e) => sum + e.score, 0) / count)
+		: 0;
+
+	const stats = [
+		{
+			icon: <ClipboardList size={15} className='text-[var(--lagoon-deep)]' />,
+			label: 'Enquiries',
+			value: count === total ? count : `${count} / ${total}`
+		},
+		{
+			icon: <TrendingUp size={15} className='text-[var(--lagoon-deep)]' />,
+			label: 'Pipeline Value',
+			value: `£${pipeline.toLocaleString()}`
+		},
+		{
+			icon: <Star size={15} className='text-[var(--lagoon-deep)]' />,
+			label: 'Avg Score',
+			value: avgScore
+		}
+	];
+
+	return (
+		<div className='mb-4 grid grid-cols-3 gap-3'>
+			{stats.map((stat) => (
+				<StatsCard key={stat.label} {...stat} />
+			))}
+		</div>
+	);
+};
+
 function App() {
-	const enquires = useDashboardStore((s) => s.enquiries);
+	const enquiries = useDashboardStore((s) => s.enquiries);
+	const filteredEnquiries = useDashboardStore((s) => s.filteredEnquiries);
+	const setFilteredEnquiries = useDashboardStore((s) => s.setFilteredEnquiries);
 
 	const { isLoading } = useEnquiries({ syncStore: true });
 
@@ -61,12 +105,16 @@ function App() {
 			{isLoading ? (
 				<Spinner className='mx-auto mt-12' />
 			) : (
-				<Table
-					data={enquires}
-					columns={columns}
-					filterPlaceholder='Search enquiries...'
-					filterKeys={['customerName', 'partRequested']}
-				/>
+				<>
+					<SummaryBar filtered={filteredEnquiries} total={enquiries.length} />
+					<Table
+						data={enquiries}
+						columns={columns}
+						filterPlaceholder='Search enquiries...'
+						filterKeys={['customerName', 'partRequested']}
+						onFilteredDataChange={setFilteredEnquiries}
+					/>
+				</>
 			)}
 		</main>
 	);

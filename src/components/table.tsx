@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
 
 export type ColumnDef<T> = {
@@ -15,18 +15,21 @@ interface TableProps<T extends object> {
 	columns: ColumnDef<T>[];
 	filterPlaceholder?: string;
 	filterKeys?: (keyof T)[];
+	onFilteredDataChange?: (filtered: T[]) => void;
 }
 
 function Table<T extends object>({
 	data,
 	columns,
 	filterPlaceholder = 'Filter...',
-	filterKeys
+	filterKeys,
+	onFilteredDataChange
 }: TableProps<T>) {
 	const [sortKey, setSortKey] = useState<keyof T | null>(null);
 	const [sortDir, setSortDir] = useState<SortDir>(null);
 	const [filter, setFilter] = useState('');
 
+	// TODO: sort logic can be dynamic. add ability to pass in sort func as param
 	const handleSort = (key: keyof T) => {
 		if (sortKey !== key) {
 			setSortKey(key);
@@ -78,6 +81,11 @@ function Table<T extends object>({
 			return <ChevronUp size={13} className='text-[var(--lagoon-deep)]' />;
 		return <ChevronDown size={13} className='text-[var(--lagoon-deep)]' />;
 	};
+
+	// call when processed changes
+	useEffect(() => {
+		onFilteredDataChange?.(processed);
+	}, [processed]);
 
 	return (
 		<div className='island-shell overflow-hidden rounded-2xl'>

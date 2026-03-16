@@ -1,8 +1,8 @@
 import { Link } from '@tanstack/react-router';
 
-import ThemeToggle from './theme-toggle';
+import { ThemeToggle } from './theme-toggle';
 
-export default function Header() {
+export const Header = () => {
 	return (
 		<header className='sticky top-0 z-50 border-b border-[var(--line)] bg-[var(--header-bg)] px-4 backdrop-blur-lg'>
 			<nav className='flex items-center gap-x-3 py-3 sm:py-4'>
@@ -39,4 +39,4 @@ export default function Header() {
 			</nav>
 		</header>
 	);
-}
+};

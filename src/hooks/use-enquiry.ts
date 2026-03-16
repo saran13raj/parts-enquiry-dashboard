@@ -2,13 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { Enquiry } from '#/types';
 import { getEnquiriesAPI } from '#/api/enquires';
-import useDashboardStore from '#/stores/dashboard-store';
+import { useDashboardStore } from '#/stores/dashboard-store';
 
 interface UseEnquiriesOptions {
 	syncStore?: boolean;
 }
 
-const useEnquiries = (options?: UseEnquiriesOptions) => {
+export const useEnquiries = (options?: UseEnquiriesOptions) => {
 	// TODO: pass store as options?
 	const setEnquiries = useDashboardStore((s) => s.setEnquiries);
 
@@ -25,5 +25,3 @@ const useEnquiries = (options?: UseEnquiriesOptions) => {
 		staleTime: 1000 * 60 * 5 // 5 minutes
 	});
 };
-
-export default useEnquiries;

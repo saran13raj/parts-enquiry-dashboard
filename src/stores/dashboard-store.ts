@@ -9,11 +9,9 @@ interface DashboardStore {
 	setFilteredEnquiries: (enquiries: Enquiry[]) => void;
 }
 
-const useDashboardStore = create<DashboardStore>((set) => ({
+export const useDashboardStore = create<DashboardStore>((set) => ({
 	enquiries: [],
 	setEnquiries: (enquiries) => set({ enquiries }),
 	filteredEnquiries: [],
 	setFilteredEnquiries: (filteredEnquiries) => set({ filteredEnquiries })
 }));
-
-export default useDashboardStore;
