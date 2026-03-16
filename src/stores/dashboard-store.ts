@@ -5,8 +5,6 @@ import type { Enquiry, Pagination, StatusFilter } from '#/types';
 interface DashboardStore {
 	enquiries: Enquiry[];
 	setEnquiries: (enquiries: Enquiry[]) => void;
-	filteredEnquiries: Enquiry[];
-	setFilteredEnquiries: (enquiries: Enquiry[]) => void;
 	pagination: Pagination;
 	setPagination: (patch: Partial<Pagination>) => void;
 	selectedEnquiry: Enquiry | null;
@@ -19,8 +17,6 @@ interface DashboardStore {
 export const useDashboardStore = create<DashboardStore>((set) => ({
 	enquiries: [],
 	setEnquiries: (enquiries) => set({ enquiries }),
-	filteredEnquiries: [],
-	setFilteredEnquiries: (filteredEnquiries) => set({ filteredEnquiries }),
 	pagination: {
 		page: 1,
 		pageSize: 10,
@@ -36,9 +32,7 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
 			const updatedEnquiries = state.enquiries.map((e) =>
 				e.id === id ? { ...e, status } : e
 			);
-			const updatedFiltered = state.filteredEnquiries.map((e) =>
-				e.id === id ? { ...e, status } : e
-			);
+
 			const updatedSelected =
 				state.selectedEnquiry?.id === id
 					? { ...state.selectedEnquiry, status }
@@ -46,7 +40,6 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
 
 			return {
 				enquiries: updatedEnquiries,
-				filteredEnquiries: updatedFiltered,
 				selectedEnquiry: updatedSelected
 			};
 		}),

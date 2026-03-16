@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import {
 	ChevronUp,
 	ChevronDown,
@@ -28,8 +28,8 @@ interface TableProps<T extends object> {
 	data: T[];
 	columns: ColumnDef<T>[];
 	filterPlaceholder?: string;
-	filterKeys?: (keyof T)[];
-	onFilteredDataChange?: (filtered: T[]) => void;
+	search?: string;
+	onSearchChange?: (v: string) => void;
 	pagination?: PaginationProps;
 	onRowClick?: (row: T) => void;
 }
@@ -40,16 +40,16 @@ function Table<T extends object>({
 	data,
 	columns,
 	filterPlaceholder = 'Filter...',
-	filterKeys,
-	onFilteredDataChange,
 	pagination,
-	onRowClick
+	onRowClick,
+	search,
+	onSearchChange
 }: TableProps<T>) {
 	const [sortKey, setSortKey] = useState<keyof T | null>(null);
 	const [sortDir, setSortDir] = useState<SortDir>(null);
-	const [filter, setFilter] = useState('');
 
-	const onFilteredDataChangeRef = useRef(onFilteredDataChange);
+	const filter = search ?? '';
+	const setFilter = onSearchChange ?? (() => {});
 
 	const handleSort = (key: keyof T) => {
 		if (sortKey !== key) {
@@ -63,22 +63,8 @@ function Table<T extends object>({
 		}
 	};
 
-	const searchableKeys = filterKeys ?? columns.map((c) => c.key);
-
 	const processed = useMemo(() => {
 		let rows = [...data];
-
-		if (filter.trim()) {
-			// NOTE: filter logic should happen via api call
-			const q = filter.toLowerCase();
-			rows = rows.filter((row) =>
-				searchableKeys.some((k) =>
-					String(row[k] ?? '')
-						.toLowerCase()
-						.includes(q)
-				)
-			);
-		}
 
 		if (sortKey && sortDir) {
 			rows.sort((a, b) => {
@@ -94,14 +80,6 @@ function Table<T extends object>({
 
 		return rows;
 	}, [data, filter, sortKey, sortDir]);
-
-	useEffect(() => {
-		onFilteredDataChangeRef.current = onFilteredDataChange;
-	});
-
-	useEffect(() => {
-		onFilteredDataChangeRef.current?.(processed);
-	}, [processed]);
 
 	const SortIcon = ({ col }: { col: ColumnDef<T> }) => {
 		if (!col.sortable) return null;

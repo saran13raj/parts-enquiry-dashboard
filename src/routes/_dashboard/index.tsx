@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { format } from 'date-fns';
 
@@ -134,9 +134,9 @@ const SummaryStats = ({
 };
 
 function Dashboard() {
+	const [search, setSearch] = useState('');
+
 	const enquiries = useDashboardStore((s) => s.enquiries);
-	const filteredEnquiries = useDashboardStore((s) => s.filteredEnquiries);
-	const setFilteredEnquiries = useDashboardStore((s) => s.setFilteredEnquiries);
 	const pagination = useDashboardStore((s) => s.pagination);
 	const setPagination = useDashboardStore((s) => s.setPagination);
 	const selectedEnquiry = useDashboardStore((s) => s.selectedEnquiry);
@@ -159,12 +159,24 @@ function Dashboard() {
 		onPageSizeChange: (pageSize) => setPagination({ page: 1, pageSize })
 	};
 
-	const statusFilteredEnquiries = useMemo(() => {
+	const displayedEnquiries = useMemo(() => {
 		if (!Array.isArray(enquiries)) return [];
-		return statusFilter === 'all'
-			? enquiries
-			: enquiries.filter((e) => e.status === statusFilter);
-	}, [enquiries, statusFilter]);
+		let rows =
+			statusFilter === 'all'
+				? enquiries
+				: enquiries.filter((e) => e.status === statusFilter);
+
+		// NOTE: filter logic should happen via api call
+		if (search.trim()) {
+			const q = search.toLowerCase();
+			rows = rows.filter(
+				(e) =>
+					e.customerName.toLowerCase().includes(q) ||
+					e.partRequested.toLowerCase().includes(q)
+			);
+		}
+		return rows;
+	}, [enquiries, statusFilter, search]);
 
 	return (
 		<main className='p-4'>
@@ -177,7 +189,7 @@ function Dashboard() {
 			) : (
 				<>
 					<SummaryStats
-						filtered={statusFilteredEnquiries ?? []}
+						filtered={displayedEnquiries ?? []}
 						total={pagination.total}
 					/>
 					<div className='flex flex-col gap-3 md:flex-row'>
@@ -185,14 +197,14 @@ function Dashboard() {
 						<StatusFilterBar value={statusFilter} onChange={setStatusFilter} />
 					</div>
 					<Table
-						data={statusFilteredEnquiries}
+						data={displayedEnquiries}
 						columns={columns}
-						filterPlaceholder='Search enquiries...'
-						filterKeys={['customerName', 'partRequested']}
+						filterPlaceholder='Search by customer name or part'
 						// NOTE: filter logic should happen via api call
-						onFilteredDataChange={setFilteredEnquiries}
 						pagination={paginationProps}
 						onRowClick={(row) => setSelectedEnquiry(row)}
+						search={search}
+						onSearchChange={setSearch}
 					/>
 				</>
 			)}
