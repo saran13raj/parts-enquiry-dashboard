@@ -24,17 +24,19 @@ export const Modal: React.FC<ModalProps> = ({ children, onClose, title }) => {
 					initial={{ opacity: 0 }}
 					animate={{ opacity: 1 }}
 					exit={{ opacity: 0 }}
+					transition={{ duration: 0.1 }}
 					onClick={onClose}
 					className='absolute inset-0 bg-black/40 backdrop-blur-sm'
 				/>
 				<motion.div
-					initial={{ opacity: 0, scale: 0.95, y: 20 }}
-					animate={{ opacity: 1, scale: 1, y: 0 }}
-					exit={{ opacity: 0, scale: 0.95, y: 20 }}
+					initial={{ opacity: 0, scale: 0.98 }}
+					animate={{ opacity: 1, scale: 1 }}
+					exit={{ opacity: 0, scale: 0.98 }}
+					transition={{ duration: 0.1 }}
 					className='island-shell relative z-10 w-full max-w-2xl overflow-hidden rounded-2xl shadow-2xl'
 					onClick={(e) => e.stopPropagation()}
 				>
-					<div className='flex items-center justify-between border-b border-[var(--line)] px-6 py-4 bg-[var(--chip-bg)]'>
+					<div className='flex items-center justify-between border-b border-[var(--line)] bg-[var(--chip-bg)] px-6 py-4'>
 						<h3 className='display-title m-0 text-xl font-bold text-[var(--sea-ink)]'>
 							{title}
 						</h3>
@@ -46,9 +48,7 @@ export const Modal: React.FC<ModalProps> = ({ children, onClose, title }) => {
 							<X size={20} />
 						</button>
 					</div>
-					<div className='max-h-[80vh] overflow-y-auto px-6 py-6'>
-						{children}
-					</div>
+					<div className='max-h-[80vh] overflow-y-auto px-6 py-6'>{children}</div>
 				</motion.div>
 			</div>
 		</AnimatePresence>
