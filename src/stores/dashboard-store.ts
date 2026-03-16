@@ -28,6 +28,7 @@ export const useDashboardStore = create<DashboardStore>((set) => ({
 		set((s) => ({ pagination: { ...s.pagination, ...patch } })),
 	selectedEnquiry: null,
 	setSelectedEnquiry: (selectedEnquiry) => set({ selectedEnquiry }),
+	// TODO: update status and store in local storage
 	updateEnquiryStatus: (id, status) =>
 		set((state) => {
 			const updatedEnquiries = state.enquiries.map((e) =>

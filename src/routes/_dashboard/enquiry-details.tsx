@@ -109,9 +109,9 @@ export const EnquiryDetails = ({
 					className='w-full cursor-pointer rounded-lg border border-[var(--line)] bg-[var(--chip-bg)] px-3 py-2 text-sm text-[var(--sea-ink)] focus:border-[var(--lagoon-deep)] focus:outline-none'
 				>
 					<option value='new'>New</option>
-					<option value='pending'>Pending</option>
-					<option value='resolved'>Resolved</option>
-					<option value='closed'>Closed</option>
+					<option value='quoted'>Quoted</option>
+					<option value='won'>Won</option>
+					<option value='lost'>Lost</option>
 				</select>
 			</div>
 		</div>

@@ -66,7 +66,7 @@ const SummaryStats = ({
 	const pipeline = filtered.reduce((sum, e) => sum + e.dealValue, 0);
 	const avgScore = count
 		? Math.round(filtered.reduce((sum, e) => sum + e.score, 0) / count)
-		: 0
+		: 0;
 
 	const stats = [
 		{
@@ -84,7 +84,7 @@ const SummaryStats = ({
 			label: 'Avg Score',
 			value: avgScore
 		}
-	]
+	];
 
 	return (
 		<div className='mb-4 grid grid-cols-1 gap-3 md:grid-cols-3'>
@@ -92,7 +92,7 @@ const SummaryStats = ({
 				<StatsCard key={stat.label} {...stat} />
 			))}
 		</div>
-	)
+	);
 };
 
 function Dashboard() {
@@ -109,7 +109,7 @@ function Dashboard() {
 		syncStore: true,
 		pageSize: pagination.pageSize,
 		page: pagination.page
-	})
+	});
 
 	const paginationProps: PaginationProps = {
 		page: pagination.page,
@@ -117,7 +117,7 @@ function Dashboard() {
 		total: pagination.total,
 		onPageChange: (page) => setPagination({ page }),
 		onPageSizeChange: (pageSize) => setPagination({ page: 1, pageSize })
-	}
+	};
 
 	return (
 		<main className='p-4'>
@@ -125,7 +125,7 @@ function Dashboard() {
 				<Spinner className='mx-auto mt-12' />
 			) : (
 				<>
-					<SummaryStats filtered={filteredEnquiries} total={enquiries.length} />
+					<SummaryStats filtered={filteredEnquiries} total={pagination.total} />
 					<Table
 						data={enquiries}
 						columns={columns}
@@ -147,5 +147,5 @@ function Dashboard() {
 				</Modal>
 			)}
 		</main>
-	)
+	);
 }
