@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
-import { getEnquiriesAPI } from '#/api/enquires';
+import { getEnquiriesAPI, searchEnquiriesAPI } from '#/api/enquires';
 import { useDashboardStore } from '#/stores/dashboard-store';
 
 interface UseEnquiriesOptions {
@@ -27,6 +27,37 @@ export const useEnquiries = (options?: UseEnquiriesOptions) => {
 	const { data: result } = query;
 
 	// TODO: can this be done without useEffect?
+	useEffect(() => {
+		if (result && syncStore) {
+			setEnquiries(result.data);
+			setPagination({ total: result.total });
+		}
+	}, [result, syncStore, setEnquiries, setPagination]);
+
+	return query;
+};
+
+export const useEnquiriesSearch = (options: {
+	search: string;
+	page: number;
+	pageSize: number;
+	syncStore?: boolean;
+}) => {
+	const { search, page, pageSize, syncStore } = options;
+
+	// TODO: pass store as options?
+	const setEnquiries = useDashboardStore((s) => s.setEnquiries);
+	const setPagination = useDashboardStore((s) => s.setPagination);
+
+	const query = useQuery({
+		queryKey: ['enquiries', 'search', search, page, pageSize],
+		queryFn: () => searchEnquiriesAPI({ search, page, pageSize }),
+		staleTime: 1000 * 60 * 5,
+		placeholderData: (prev) => prev
+	});
+
+	const { data: result } = query;
+
 	useEffect(() => {
 		if (result && syncStore) {
 			setEnquiries(result.data);

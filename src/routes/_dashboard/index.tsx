@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { format } from 'date-fns';
 
 import type { Enquiry, StatusFilter } from '#/types';
 import type { ColumnDef, PaginationProps } from '#/components/table';
-import { useEnquiries } from '#/hooks/use-enquiry';
+import { useEnquiriesSearch } from '#/hooks/use-enquiry';
 import { Spinner } from '#/components/spinner';
 import Table from '#/components/table';
 import { useDashboardStore } from '#/stores/dashboard-store';
@@ -13,6 +13,7 @@ import { StatsCard } from '#/components/stats-card';
 import { Modal } from '#/components/modal';
 import { EnquiryDetails } from './enquiry-details';
 import { cn } from '#/utils';
+import { useDebounce } from '#/hooks/use-debounce';
 
 export const Route = createFileRoute('/_dashboard/')({ component: Dashboard });
 
@@ -135,6 +136,7 @@ const SummaryStats = ({
 
 function Dashboard() {
 	const [search, setSearch] = useState('');
+	const debouncedSearch = useDebounce(search, 200);
 
 	const enquiries = useDashboardStore((s) => s.enquiries);
 	const pagination = useDashboardStore((s) => s.pagination);
@@ -145,7 +147,12 @@ function Dashboard() {
 	const statusFilter = useDashboardStore((s) => s.statusFilter);
 	const setStatusFilter = useDashboardStore((s) => s.setStatusFilter);
 
-	const { isLoading, isError } = useEnquiries({
+	useEffect(() => {
+		setPagination({ page: 1 });
+	}, [debouncedSearch, setPagination]);
+
+	const { isLoading, isError } = useEnquiriesSearch({
+		search: debouncedSearch,
 		syncStore: true,
 		pageSize: pagination.pageSize,
 		page: pagination.page
@@ -166,17 +173,8 @@ function Dashboard() {
 				? enquiries
 				: enquiries.filter((e) => e.status === statusFilter);
 
-		// NOTE: filter logic should happen via api call
-		if (search.trim()) {
-			const q = search.toLowerCase();
-			rows = rows.filter(
-				(e) =>
-					e.customerName.toLowerCase().includes(q) ||
-					e.partRequested.toLowerCase().includes(q)
-			);
-		}
 		return rows;
-	}, [enquiries, statusFilter, search]);
+	}, [enquiries, statusFilter]);
 
 	return (
 		<main className='p-4'>
