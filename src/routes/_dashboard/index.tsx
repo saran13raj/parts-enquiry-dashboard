@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { createFileRoute } from '@tanstack/react-router';
 import { format } from 'date-fns';
 
@@ -147,10 +147,6 @@ function Dashboard() {
 	const statusFilter = useDashboardStore((s) => s.statusFilter);
 	const setStatusFilter = useDashboardStore((s) => s.setStatusFilter);
 
-	useEffect(() => {
-		setPagination({ page: 1 });
-	}, [debouncedSearch, setPagination]);
-
 	const { isLoading, isError } = useEnquiriesSearch({
 		search: debouncedSearch,
 		syncStore: true,
@@ -175,6 +171,11 @@ function Dashboard() {
 
 		return rows;
 	}, [enquiries, statusFilter]);
+
+	const handleSearchChange = (value: string) => {
+		setSearch(value);
+		setPagination({ page: 1 });
+	};
 
 	return (
 		<main className='p-4'>
@@ -202,7 +203,7 @@ function Dashboard() {
 						pagination={paginationProps}
 						onRowClick={(row) => setSelectedEnquiry(row)}
 						search={search}
-						onSearchChange={setSearch}
+						onSearchChange={handleSearchChange}
 					/>
 				</>
 			)}
